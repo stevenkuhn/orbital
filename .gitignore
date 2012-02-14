@@ -1,0 +1,17 @@
+_ReSharper.*
+obj
+bin
+build
+dist
+Deployment
+*.user
+*resharper*
+*.suo
+*.cache
+*~
+*.swp
+*.Publish.xml
+Web/App_Data*
+/packages*
+Thumbs.db
+*.debug.css

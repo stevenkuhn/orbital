@@ -1,0 +1,76 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<script type="text/javascript">
+	var chart1; var chart2; var chart3;
+	$(document).ready(function () {
+		chart1 = new Highcharts.Chart({
+			chart: {
+				renderTo: 'container',
+				type: 'line',
+				zoomType: 'x'
+			},
+			title: {
+				text: '% Total Processor Time'
+			},
+			xAxis: {
+				type: 'datetime'
+			},
+			yAxis: {
+				title: {
+					text: '% CPU'
+				},
+				min: 0
+			},
+			series: [
+			@foreach (var g in ViewBag.TotalProcessorTime) {
+				@:{ name: '@g.Name', data: [
+
+				foreach (var dp in g.Elements) {
+					@:['@dp.CounterDateTime', @dp.CounterValue],
+				}
+
+				@:]},
+			}
+			]
+		});
+
+		chart2 = new Highcharts.Chart({
+			chart: {
+				renderTo: 'container2',
+				type: 'line',
+				zoomType: 'x'
+			},
+			title: {
+				text: 'Available Memory'
+			},
+			xAxis: {
+				type: 'datetime'
+			},
+			yAxis: {
+				title: {
+					text: 'RAM (MB)'
+				},
+				min: 0
+			},
+			series: [
+			@foreach (var g in ViewBag.AvailableMemory) {
+				@:{ name: '@g.Name', data: [
+
+				foreach (var dp in g.Elements) {
+					@:['@dp.CounterDateTime', @dp.CounterValue],
+				}
+
+				@:]},
+			}
+			]
+		});
+	});
+</script>
+
+<div id="container" style="width: 100%; height: 400px"></div>
+<br />
+<div id="container2" style="width: 100%; height: 400px"></div>
+
+

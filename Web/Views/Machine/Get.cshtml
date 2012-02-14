@@ -1,0 +1,186 @@
+﻿<div class="page-header">
+    <h1>
+        @ViewBag.Name
+        <small>@ViewBag.Description</small>
+    </h1>
+</div>
+
+<div class="row">
+    <!-- ko foreach: categories -->
+    <div class="span4">
+        <h2 data-bind="text: name"></h2>
+        <div class="well">
+            <!-- ko foreach: charts -->
+            <div data-bind="attr: { id: id }"></div>
+            <!-- /ko -->
+        </div>
+    </div>
+    <!-- /ko -->
+</div>
+
+<p>
+    <a href="#myModal" class="btn btn-large btn-primary" data-toggle="modal">Create Graph</a>
+</p>
+
+<div id="myModal" class="modal hide fade">
+    <div class="modal-header">
+        <a class="close" data-dismiss="modal">×</a>
+        <h3>Create Graph</h3>
+    </div>
+    <div class="modal-body">
+        <form class="form-horizontal" data-bind="with: createChartModel">
+            <div class="control-group">
+                <label class="control-label">Name</label>
+                <div class="controls">
+                    <input type="text">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Category</label>
+                <div class="controls">
+                    <input type="text">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Y-Axis Label</label>
+                <div class="controls">
+                    <input type="text">
+                </div>
+            </div>
+            <hr />
+            <div class="control-group">
+                <label class="control-label">Machine</label>
+                <div class="controls">
+                    <select class="input-xlarge" data-bind='options: machines, optionsText: "name", optionsCaption: "Select...", value: machine'>
+                    </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Object</label>
+                <div class="controls">
+                    <select class="input-xlarge" data-bind='options: machine() == null ? null : machine().objects, optionsText: "name", optionsCaption: "Select...", value: object'>
+                    </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Counter</label>
+                <div class="controls">
+                    <select class="input-xlarge" data-bind='options: object() == null ? null : object().counters, optionsText: "name", optionsCaption: "Select...", value: counter'>
+                    </select>
+                </div>
+            </div>
+        </form>        
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn btn-primary">Create</a>
+    </div>
+</div>
+
+@section footer {
+    <script type="text/javascript">
+        function viewModel() {
+            var self = this;
+
+            self.name = "Phoenix";
+            self.description = "A VPS6.net virtual machine in Chicago, IL.";
+
+            self.categories = [
+            @foreach (var cat in ViewBag.Categories) {
+                <text>{
+                    name: "@cat.Name",
+                    charts: [
+                    @foreach (var chart in cat.Charts) {
+                        <text>{
+                            id: "@chart.Id",
+                            yaxisLabel: "@chart.YAxisLabel",
+                            series: [
+                            @foreach (var series in chart.Series) {
+                                <text>{
+                                    name: "@series.Name",
+                                    data: [
+                                    @foreach (var item in series.Data) {
+                                        <text>[Date.UTC(@item.Date.Year, @item.Date.Month, @item.Date.Day, @item.Date.Hour, @item.Date.Minute, @item.Date.Second), @item.Value],</text>
+                                    }
+                                    ]
+                                },</text>
+                            }
+                            ]
+                        },</text>
+                    }
+                    ]
+                },</text>
+            }
+                /*name: "CPU",
+                charts: [{
+                    id: "usage",
+                    yaxisLabel: "Usage (%)",
+                    series: [{
+                        name: "0",
+                        data: [
+                        foreach (var item in ViewBag.CPU0) {
+				            :[Date.UTC(item.Date.Year, item.Date.Month, item.Date.Day, item.Date.Hour, item.Date.Minute, item.Date.Second), item.Value],
+			            }
+                        ]
+                    }]     
+                }]*/
+
+            ];
+
+            self.createChartModel = new function () {
+                name = ko.observable();
+                category = ko.observable();
+                yaxisLabel = ko.observable();
+                machine = ko.observable();
+                object = ko.observable();
+                counter = ko.observable();
+                machines = [
+                @foreach (var machine in ViewBag.Machines) {
+                    @:{
+                        @:name: "@machine.Name",
+                        @:objects: [
+                        foreach (var obj in machine.Objects) {
+                            @:{
+                                @:name: "@obj.Name",
+                                @:counters: [
+                                foreach (var counter in obj.Counters) {
+                                    @:{ name: "@counter.Name@if (!string.IsNullOrEmpty(@counter.Instance)) { <text>(@counter.Instance)</text>}" },
+                                }
+                                @:]
+                            @:},
+                        }       
+                        @:]
+                    @:},
+                }
+                ]
+            };
+        };
+
+        var model = new viewModel(); 
+        ko.applyBindings(model);
+
+        $(function() {
+            for (var i = 0; i < model.categories.length; i++) {
+                for (var j = 0; j < model.categories[i].charts.length; j++) {
+                    var test = new Highcharts.Chart({
+                        chart: {
+                            renderTo: model.categories[i].charts[j].id,
+                            type: 'spline',
+                            zoomType: 'x',
+                            height:250
+                        },
+                        credits: { enabled: false },
+			            title: { text: null },
+                        legend: { enabled: false },
+                        xAxis: { type: 'datetime' },
+                        yAxis: {
+				            title: { text: model.categories[i].charts[j].yaxisLabel },
+				            min: 0
+			            },
+                        plotOptions: { spline: { marker: { enabled: false } } },
+                        series: model.categories[i].charts[j].series
+                    });
+                }
+            }
+        });
+    </script>
+}
