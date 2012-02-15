@@ -1,3 +1,34 @@
 ﻿<div class="page-header">
     <h1>Machines</h1>
 </div>
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>&nbsp;</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var machine in ViewBag.Machines) {
+        <tr>
+            <td>@machine.Name</td>
+            <td>@machine.Description</td>
+            <td style="width: 130px;">
+                <div class="btn-group" style="margin: 0 auto;width:115px;">
+                    @Html.RouteLink("View Charts", "machine-get", new { name = machine.Name }, new { @class = "btn" })
+                    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+                    <ul class="dropdown-menu" style="width:115px;min-width:115px;max-width:115px">
+                        <li><a href="#">Settings</a></li>
+                        <li><a href="#">Delete</a></li>
+                    </ul>
+                </div>
+            </td>
+        </tr> }
+    </tbody>
+</table>
+
+<p>
+    @Html.RouteLink("Add Machine", "machine-add", null, new { @class = "btn btn-large btn-primary" })
+</p>

@@ -4,65 +4,65 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Dapper;
-using Orbital.Web.Models;
 using System.Dynamic;
+using Orbital.Web.Models;
+using Raven.Client;
 
 namespace Orbital.Web.Controllers
 {
     public class MachineController : Controller
     {
         private IDbContext DbContext { get; set; }
+        private IDocumentSession RavenSession { get; set; }
 
-        public MachineController(IDbContext dbContext)
+        public MachineController(IDbContext dbContext, IDocumentSession ravenSession)
         {
             DbContext = dbContext;
+            RavenSession = ravenSession;
         }
 
         public ActionResult Index()
         {
+            ViewBag.Machines = from machine in RavenSession.Query<Machine>()
+                               orderby machine.Name
+                               select machine;
+
             return View();
         }
 
-
-
-        public ActionResult Get(int id)
+        public ActionResult Add()
         {
-            ViewBag.Name = "Phoenix";
-            ViewBag.Description = "Windows 2008 R2 Web Server (Xen Virtual Machine) in Chicago, IL.";
-            ViewBag.HostName = "phoenix.lightviper.net";
+            return View();
+        }
 
-            var sql = @"
+        [HttpPost]
+        public ActionResult Add(Machine machine)
+        {
+            RavenSession.Store(machine);
+            return RedirectToRoute("machines");
+        }
+
+        public ActionResult Get(string name)
+        {
+            ViewBag.Machine = (from machine in RavenSession.Query<Machine>().ToList()
+                               where machine != null && machine.Name.ToUpperInvariant() == name.ToUpperInvariant()
+                               select machine).SingleOrDefault();
+
+            ViewBag.Machines = Enumerable.Empty<dynamic>();
+            ViewBag.Categories = Enumerable.Empty<dynamic>();
+
+            ViewBag.CounterDetails = DbContext.GetConnection().Query(@"
 SELECT CounterID, SUBSTRING(MachineName, 3, LEN(MachineName) - 2) AS MachineName, ObjectName, CounterName, InstanceName
 FROM CounterDetails
-ORDER BY MachineName, ObjectName, CounterName, InstanceName";
-            var query = DbContext.GetConnection().Query(sql);
+ORDER BY MachineName, ObjectName, CounterName, InstanceName");
 
-            ViewBag.Machines = from item in query
-                               group item by item.MachineName into machines
-                               select new Machine()
-                               {
-                                   Name = machines.Key,
-                                   Objects = from machine in machines.ToList()
-                                             group machine by machine.ObjectName into objects
-                                             select new Object()
-                                             {
-                                                 Name = objects.Key,
-                                                 Counters = from obj in objects.ToList()
-                                                            select new Counter()
-                                                            {
-                                                                Name = obj.CounterName,
-                                                                Instance = obj.InstanceName
-                                                            }
-                                             }
-                               };
-            sql = @"
+            var query = DbContext.GetConnection().Query(@"
 SELECT
     CounterId,
 	CAST(SUBSTRING(CounterDateTime, 0, 20) AS DATETIME) AS Date, 
 	CounterValue AS Value
 FROM CounterData 
-WHERE CounterId in (29, 30, 31, 32, 33, 34) AND CAST(SUBSTRING(CounterDateTime, 0, 20) AS DATETIME) > DATEADD(mi, -30, GETDATE())";
-            query = DbContext.GetConnection().Query(sql);
+WHERE CounterId in (29, 30, 31, 32, 33, 34) AND CAST(SUBSTRING(CounterDateTime, 0, 20) AS DATETIME) > DATEADD(mi, -30, GETDATE())");
 
             ViewBag.Categories = new List<ExpandoObject>();
             
@@ -108,31 +108,7 @@ WHERE CounterId in (29, 30, 31, 32, 33, 34) AND CAST(SUBSTRING(CounterDateTime, 
             category.Charts[0].Series[1].Data = from item in query where item.CounterId == 30 select item;
             ViewBag.Categories.Add(category);
 
-            
-            //ViewBag.Categories.Add
-             
             return View();
         }
-    }
-
-    public class Machine
-    {
-        public string Name { get; set; }
-
-        public IEnumerable<Object> Objects { get; set; }
-    }
-
-    public class Object
-    {
-        public string Name { get; set; }
-
-        public IEnumerable<Counter> Counters { get; set; }
-    }
-
-    public class Counter
-    {
-        public string Name { get; set; }
-
-        public string Instance { get; set; }
     }
 }

@@ -9,6 +9,8 @@ namespace Web.Controllers
 {
 	public class HomeController : Controller
 	{
+        // EARNING: THIS IS JUST CONCEPT CODE.
+
 		private IDbContext DbContext { get; set; }
 
 		public HomeController(IDbContext dbContext)

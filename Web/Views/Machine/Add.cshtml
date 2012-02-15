@@ -1,0 +1,28 @@
+﻿<div class="page-header">
+    <h1>Add Machine</h1>
+</div>
+
+@using (Html.BeginRouteForm("machine-add", FormMethod.Post, new { @class = "form-horizontal" })) {
+    <div class="control-group">
+        <label class="control-label">Name</label>
+        <div class="controls">
+            @Html.TextBox("Name", null, new { @class = "input-xlarge" })
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label">Description</label>
+        <div class="controls">
+            @Html.TextBox("Description", null, new { @class = "input-xlarge" })
+        </div>
+    </div>
+        
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save changes</button>
+        <button type="reset" class="btn">Cancel</button>
+    </div>
+}
+
+<!--<p>
+    @Html.RouteLink("Add Machine", "machine-add", null, new { @class = "btn btn-large btn-primary" })
+</p>-->

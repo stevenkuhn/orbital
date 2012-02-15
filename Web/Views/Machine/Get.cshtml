@@ -1,7 +1,7 @@
 ﻿<div class="page-header">
     <h1>
-        @ViewBag.Name
-        <small>@ViewBag.Description</small>
+        @ViewBag.Machine.Name
+        <small>@ViewBag.Machine.Description</small>
     </h1>
 </div>
 
@@ -30,6 +30,28 @@
     <div class="modal-body">
         <form class="form-horizontal" data-bind="with: createChartModel">
             <div class="control-group">
+                <label class="control-label">MachineName</label>
+                <div class="controls">
+                    <select class="input-xlarge" data-bind='options: machines, optionsCaption: "Select...", value: machineName'>
+                    </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">ObjectName</label>
+                <div class="controls">
+                    <select class="input-xlarge" data-bind='options: objects, optionsCaption: "Select...", value: objectName'>
+                    </select>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">CounterName</label>
+                <div class="controls">
+                    <select class="input-xlarge" data-bind='options: counters, optionsText: "counterName", optionsCaption: "Select...", value: counter'>
+                    </select>
+                </div>
+            </div>
+            <hr />
+            <div class="control-group">
                 <label class="control-label">Name</label>
                 <div class="controls">
                     <input type="text">
@@ -47,28 +69,6 @@
                     <input type="text">
                 </div>
             </div>
-            <hr />
-            <div class="control-group">
-                <label class="control-label">Machine</label>
-                <div class="controls">
-                    <select class="input-xlarge" data-bind='options: machines, optionsText: "name", optionsCaption: "Select...", value: machine'>
-                    </select>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label">Object</label>
-                <div class="controls">
-                    <select class="input-xlarge" data-bind='options: machine() == null ? null : machine().objects, optionsText: "name", optionsCaption: "Select...", value: object'>
-                    </select>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label">Counter</label>
-                <div class="controls">
-                    <select class="input-xlarge" data-bind='options: object() == null ? null : object().counters, optionsText: "name", optionsCaption: "Select...", value: counter'>
-                    </select>
-                </div>
-            </div>
         </form>        
     </div>
     <div class="modal-footer">
@@ -81,8 +81,8 @@
         function viewModel() {
             var self = this;
 
-            self.name = "Phoenix";
-            self.description = "A VPS6.net virtual machine in Chicago, IL.";
+            self.name = "@ViewBag.Machine.Name";
+            self.description = "@ViewBag.Machine.Description";
 
             self.categories = [
             @foreach (var cat in ViewBag.Categories) {
@@ -110,48 +110,58 @@
                     ]
                 },</text>
             }
-                /*name: "CPU",
-                charts: [{
-                    id: "usage",
-                    yaxisLabel: "Usage (%)",
-                    series: [{
-                        name: "0",
-                        data: [
-                        foreach (var item in ViewBag.CPU0) {
-				            :[Date.UTC(item.Date.Year, item.Date.Month, item.Date.Day, item.Date.Hour, item.Date.Minute, item.Date.Second), item.Value],
-			            }
-                        ]
-                    }]     
-                }]*/
-
             ];
 
             self.createChartModel = new function () {
                 name = ko.observable();
                 category = ko.observable();
                 yaxisLabel = ko.observable();
-                machine = ko.observable();
-                object = ko.observable();
+                machineName = ko.observable();
+                objectName = ko.observable();
                 counter = ko.observable();
-                machines = [
-                @foreach (var machine in ViewBag.Machines) {
-                    @:{
-                        @:name: "@machine.Name",
-                        @:objects: [
-                        foreach (var obj in machine.Objects) {
-                            @:{
-                                @:name: "@obj.Name",
-                                @:counters: [
-                                foreach (var counter in obj.Counters) {
-                                    @:{ name: "@counter.Name@if (!string.IsNullOrEmpty(@counter.Instance)) { <text>(@counter.Instance)</text>}" },
-                                }
-                                @:]
-                            @:},
-                        }       
-                        @:]
+                details = [
+                @foreach (var detail in ViewBag.CounterDetails) {
+                    @:{ 
+                        @:id: @detail.CounterID,
+                        @:machineName: "@detail.MachineName", 
+                        @:objectName: "@detail.ObjectName", 
+                        @:counterName: "@detail.CounterName@if (!string.IsNullOrEmpty(detail.InstanceName)) { <text>(@detail.InstanceName)</text>}"
                     @:},
                 }
-                ]
+                ];
+                // contains the list of distinct machineNames
+                machines = ko.computed(function() {
+                    var names = new Array();
+
+                    for (var i = 0; i < details.length; i++) {
+                        if (names.indexOf(details[i].machineName) < 0)
+                            names.push(details[i].machineName);
+                    }
+
+                    return names;
+                });
+                // contains the objectNames for the selected machineName
+                objects = ko.computed(function() {
+                    if (machineName() == null)
+                        return null;
+
+                    var names = new Array();
+                    for (var i = 0; i < details.length; i++) {
+                        if (details[i].machineName == machineName() && names.indexOf(details[i].objectName) < 0)
+                            names.push(details[i].objectName);
+                    }
+
+                    return names;
+                });
+                // contains the counters for the selected machineName and objectName
+                counters = ko.computed(function() {
+                    if (machineName() == null || objectName() == null)
+                        return null;
+
+                    return ko.utils.arrayFilter(details, function(item) {
+                        return item.machineName == machineName() && item.objectName == objectName();
+                    });
+                });
             };
         };
 
@@ -166,7 +176,7 @@
                             renderTo: model.categories[i].charts[j].id,
                             type: 'spline',
                             zoomType: 'x',
-                            height:250
+                            height: 250
                         },
                         credits: { enabled: false },
 			            title: { text: null },

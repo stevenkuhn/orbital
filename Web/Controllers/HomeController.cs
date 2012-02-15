@@ -4,7 +4,6 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Dapper;
-using Orbital.Web.Models;
 using System.Dynamic;
 
 namespace Orbital.Web.Controllers
@@ -20,7 +19,7 @@ namespace Orbital.Web.Controllers
 
         public ActionResult Index()
         {
-            var sql = @"
+            /*var sql = @"
 SELECT
 	DisplayString, 
 	SUBSTRING(MachineName, 3, LEN(MachineName) - 2) AS MachineName, 
@@ -62,14 +61,14 @@ WHERE CAST(SUBSTRING(CounterDateTime, 0, 20) AS DATETIME) > DATEADD(mi, -15, GET
                                           Name = g.Key,
                                           Elements = g.ToList()
                                       };
-
+            */
             return View();
         }
     }
 
-    public class Group
+    /*public class Group
     {
         public string Name { get; set; }
         public IEnumerable<CounterDataPoint> Elements { get; set; }
-    }
+    }*/
 }

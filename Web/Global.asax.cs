@@ -21,17 +21,10 @@ namespace Orbital.Web
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
-
             routes.MapRouteLowerCase("machines", "machine", new { controller = "Machine", action = "Index" });
-            routes.MapRouteLowerCase("machine-get", "machine/{id}", new { controller = "Machine", action = "Get" });
+            routes.MapRouteLowerCase("machine-add", "machine/add", new { controller = "Machine", action = "Add" });
+            routes.MapRouteLowerCase("machine-get", "machine/{name}", new { controller = "Machine", action = "Get" });
             routes.MapRouteLowerCase("default", "", new { controller = "Home", action = "Index" });
-
-            //routes.MapRoute(
-            //    "Default", // Route name
-            //    "{controller}/{action}/{id}", // URL with parameters
-            //    new { controller = "Home", action = "Index", id = UrlParameter.Optional } // Parameter defaults
-           // );
-
         }
 
         protected void Application_Start()

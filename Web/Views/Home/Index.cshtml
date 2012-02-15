@@ -10,12 +10,16 @@
             CPU 
         </h2>
 
-        <div class="well"><div id="cpuChart"></div></div>
+        <div class="well">
+            Graph goes here.
+        </div>
     </div>
     <div class="span4">
         <h2>Memory</h2>
 
-        <div class="well"><div id="memoryChart"></div></div>
+        <div class="well">
+            Graph goes here.
+        </div>
     </div>
     <div class="span4">
         <h2>Disk</h2>
@@ -27,92 +31,12 @@
 </div>
 
 <p>
-    <a href="#" class="btn btn-large btn-primary">Add Monitor</a>
+    <!--<a href="#" class="btn btn-large btn-primary">Add Monitor</a>-->
 </p>
 
 @section footer {
 <script type="text/javascript">
-    var cpuChart, memoryChart;
-
     $(function () {
-       cpuChart = new Highcharts.Chart({
-            chart: {
-				renderTo: 'cpuChart',
-				type: 'spline',
-				zoomType: 'x'
-			},
-            credits: { enabled: false },
-			title: {
-				text: null
-			},
-            xAxis: {
-				type: 'datetime',
-                events: { setExtremes: function(event) {
-                    memoryChart.xAxis[0].setExtremes(event.min, event.max);
-
-                } }
-			},
-			yAxis: {
-				title: {
-					text: '% CPU'
-				},
-				min: 0
-			},
-            plotOptions: { spline: { marker: { enabled: false } } },
-            series: [
-			@foreach (var g in ViewBag.GuestRunTime) {
-				@:{ name: '@g.Name', data: [
-
-				foreach (var dp in g.Elements) {
-					@:['@dp.CounterDateTime', @dp.CounterValue],
-				}
-
-				@:]},
-			}
-            @foreach (var g in ViewBag.TotalRunTime) {
-				@:{ name: '@g.Name', data: [
-
-				foreach (var dp in g.Elements) {
-					@:['@dp.CounterDateTime', @dp.CounterValue],
-				}
-
-				@:]},
-			}
-            ]
-        });
-
-        memoryChart = new Highcharts.Chart({
-            chart: {
-				renderTo: 'memoryChart',
-				type: 'spline',
-				zoomType: 'x'
-			},
-            credits: { enabled: false },
-			title: {
-				text: null
-			},
-            xAxis: {
-				type: 'datetime'
-			},
-			yAxis: {
-				title: {
-					text: 'RAM (MB)'
-				},
-				min: 0
-			},
-            plotOptions: { spline: { marker: { enabled: false } } },
-            series: [
-			@foreach (var g in ViewBag.AvailableMemory) {
-				@:{ name: '@g.Name', data: [
-
-				foreach (var dp in g.Elements) {
-					@:['@dp.CounterDateTime', @dp.CounterValue],
-				}
-
-				@:]},
-			}
-            ]
-        });
     });
 </script>
 }
